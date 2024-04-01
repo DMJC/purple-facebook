@@ -13,12 +13,10 @@ License: GPL-2.0+
 URL: https://github.com/dequis/purple-facebook
 Source0: %{name}-%{version}.tar.gz
 
-BuildRequires: autoconf >= 2.64
-BuildRequires: automake
+BuildRequires: meson
 BuildRequires: glib2-devel >= 2.28.0
 BuildRequires: json-glib-devel >= 0.14
 BuildRequires: libpurple-devel < 3
-BuildRequires: libtool
 BuildRequires: pkg-config
 
 Requires: glib2 >= 2.28.0

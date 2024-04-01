@@ -1,0 +1,10 @@
+option('warnings',
+       type : 'boolean',
+       description : 'Enable additional compile-time (GCC) warnings',
+       value : true)
+
+option('plugindir',
+       type : 'string',
+       description : 'Specify the libpurple plugin directory',
+       value : '')
+

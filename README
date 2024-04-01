@@ -4,4 +4,8 @@ this plugin is back-ported for purple2.
 
 This project is not affiliated with Facebook, Inc.
 
+This has been forked from https://github.com/dequis/purple-facebook/ - Thanks Dequis for Maintaining this project for so long.
+
+Build Instructions: git clone the repository, run meson setup build, cd into build directory and type ninja; ninja install to install to plugins folder.
+
 More information: https://github.com/dequis/purple-facebook/wiki
