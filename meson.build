@@ -25,21 +25,6 @@ if get_option('warnings')
     add_project_arguments('-Wall', '-Wextra', '-Waggregate-return', '-Wdeclaration-after-statement', '-Wfloat-equal', '-Wformat', '-Winit-self', '-Wmissing-declarations', '-Wmissing-prototypes', '-Wno-unused-parameter', '-Wpointer-arith', language : 'c')
 endif
 
-# Define source files
-source_files = files(
-    'pidgin/libpurple/protocols/facebook/marshal.c',
-    'pidgin/libpurple/protocols/facebook/api.c',
-    'pidgin/libpurple/protocols/facebook/data.c',
-    'pidgin/libpurple/protocols/facebook/facebook.c',
-    'pidgin/libpurple/protocols/facebook/http.c',
-    'pidgin/libpurple/protocols/facebook/json.c',
-    'pidgin/libpurple/protocols/facebook/mqtt.c',
-    'pidgin/libpurple/protocols/facebook/thrift.c',
-    'pidgin/libpurple/protocols/facebook/util.c',
-    'pidgin/libpurple/http.c',
-    'pidgin/libpurple/purple-socket.c'
-)
-
 # Argument for specifying the libpurple plugin directory
 plugin_dir = get_option('plugindir')
 
@@ -70,6 +55,21 @@ run_command(generate_marshal_header_command,
 
 run_command(generate_marshal_c_command,
            check: true)
+
+# Define source files
+source_files = files(
+    'pidgin/libpurple/protocols/facebook/marshal.c',
+    'pidgin/libpurple/protocols/facebook/api.c',
+    'pidgin/libpurple/protocols/facebook/data.c',
+    'pidgin/libpurple/protocols/facebook/facebook.c',
+    'pidgin/libpurple/protocols/facebook/http.c',
+    'pidgin/libpurple/protocols/facebook/json.c',
+    'pidgin/libpurple/protocols/facebook/mqtt.c',
+    'pidgin/libpurple/protocols/facebook/thrift.c',
+    'pidgin/libpurple/protocols/facebook/util.c',
+    'pidgin/libpurple/http.c',
+    'pidgin/libpurple/purple-socket.c'
+)
 
 # Determine the plugin directory if not provided by the user
 if plugin_dir == ''
