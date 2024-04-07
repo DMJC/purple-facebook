@@ -11,7 +11,7 @@ project('purple-facebook', 'c')
 
 compiler_options = []
 compiler_options += ['-DPACKAGE_VERSION="0.9.7"']
-compiler_options += ['-DPACKAGE_URL="https://github.com/DMJC/purple-facebook"']
+compiler_options += ['-DPACKAGE_URL="https://github.com/dequis/purple-facebook/"']
 
 #define('PACKAGE_VERSION', '"0.9.61"')
 #define('PACKAGE_URL', '"https://github.com/DMJC/purple-facebook"')
