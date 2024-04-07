@@ -2359,6 +2359,70 @@ fb_api_auth(FbApi *api, const gchar *user, const gchar *pass, const gchar *crede
                     prms, fb_api_cb_auth);
 }
 
+static void
+fb_api_cb_work_prelogin(PurpleHttpConnection *con, PurpleHttpResponse *res, gpointer data)
+{
+    FbApiPreloginData *pata = data;
+    FbApi *api = pata->api;
+    FbApiPrivate *priv = api->priv;
+    GError *err = NULL;
+    JsonNode *root;
+    gchar *status;
+    gchar *user = pata->user;
+    gchar *pass = pata->pass;
+
+    g_free(pata);
+
+    if (!fb_api_http_chk(api, con, res, &root)) {
+        return;
+    }
+
+    status = fb_json_node_get_str(root, "$.status", &err);
+
+    FB_API_ERROR_EMIT(api, err,
+        json_node_free(root);
+        return;
+    );
+
+    if (g_strcmp0(status, "can_login_password") == 0) {
+        fb_api_auth(api, user, pass, "work_account_password");
+
+    } else if (g_strcmp0(status, "can_login_via_linked_account") == 0) {
+        fb_api_auth(api, user, pass, "personal_account_password_with_work_username");
+        priv->need_work_switch = TRUE;
+
+    } else if (g_strcmp0(status, "can_login_sso") == 0) {
+        g_signal_emit_by_name(api, "work-sso-login");
+
+    } else if (g_strcmp0(status, "cannot_login") == 0) {
+        char *reason = fb_json_node_get_str(root, "$.cannot_login_reason", NULL);
+
+        if (g_strcmp0(reason, "non_business_email") == 0) {
+            fb_api_error(api, FB_API_ERROR_AUTH,
+                         "Cannot login with non-business email. "
+                         "Change the 'username' setting or disable 'work'");
+        } else {
+            char *title = fb_json_node_get_str(root, "$.error_title", NULL);
+            char *body = fb_json_node_get_str(root, "$.error_body", NULL);
+
+            fb_api_error(api, FB_API_ERROR_AUTH,
+                         "Work prelogin failed (%s - %s)", title, body);
+
+            g_free(title);
+            g_free(body);
+        }
+
+        g_free(reason);
+
+    } else if (g_strcmp0(status, "can_self_invite") == 0) {
+        fb_api_error(api, FB_API_ERROR_AUTH, "Unknown email. "
+                     "Change the 'username' setting or disable 'work'");
+    }
+
+    g_free(status);
+    json_node_free(root);
+}
+
 static gchar *
 fb_api_user_icon_checksum(gchar *icon)
 {
