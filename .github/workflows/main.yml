@@ -26,3 +26,9 @@ jobs:
       with:
         path: /tmp/purple-facebook/
         key: purple-facebook
+
+    - name: archive
+      uses: actions/upload-artifact@v3
+      with: 
+          name: plugin 
+          path: lib*.so
