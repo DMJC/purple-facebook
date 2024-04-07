@@ -84,10 +84,7 @@ else
     purple_plugindir = plugin_dir
 endif
 
-
-
 # Define library
 #plugin_library = shared_library('purple-facebook-plugin', source_files, dependencies : [glib_dep, json_dep, purple_dep, zlib_dep], c_args: compiler_options)
 
 plugin_library = shared_library('purple-facebook-plugin', source_files, dependencies : [glib_dep, json_dep, purple_dep, zlib_dep], c_args: compiler_options, install: true, install_dir: purple_plugindir)
-

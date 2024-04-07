@@ -1,4 +1,23 @@
 #!/usr/bin/make -f
 
+#%:
+#	dh build --buildsystem=meson
+
+# Define variables
+PKG = libpurple-facebook
+LIBRARY_NAME = libpurple-facebook.so
+
 %:
-	dh build --buildsystem=meson
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure --buildsystem=meson
+
+override_dh_auto_build:
+	dh_auto_build
+
+override_dh_auto_install:
+	dh_auto_install
+
+override_dh_auto_test:
+	dh_auto_test

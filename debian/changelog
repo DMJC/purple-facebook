@@ -1,4 +1,4 @@
-purple-facebook (0.0.0-1) UNRELEASED; urgency=medium
+libpurple-facebook (0.9.7) UNRELEASED; urgency=medium
 
   * Initial debian support.
 

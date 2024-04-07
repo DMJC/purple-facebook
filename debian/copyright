@@ -1,5 +1,5 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: purple-facebook
+Upstream-Name: libpurple-facebook
 Source: https://github.com/jgeboski/purple-facebook
 
 Files: *
