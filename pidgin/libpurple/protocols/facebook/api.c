@@ -2336,6 +2336,25 @@ fb_api_auth(FbApi *api, const gchar *user, const gchar *pass, const gchar *crede
     prms = fb_http_params_new();
     fb_http_params_set_str(prms, "email", user);
     fb_http_params_set_str(prms, "password", pass);
+
+    if (credentials_type) {
+        fb_http_params_set_str(prms, "credentials_type", credentials_type);
+    }
+
+    if (priv->sso_verifier) {
+        fb_http_params_set_str(prms, "code_verifier", priv->sso_verifier);
+        g_free(priv->sso_verifier);
+        priv->sso_verifier = NULL;
+    }
+
+    if (priv->work_community_id) {
+        fb_http_params_set_int(prms, "community_id", priv->work_community_id);
+    }
+
+    if (priv->is_work && priv->token) {
+        fb_http_params_set_str(prms, "access_token", priv->token);
+    }
+
     fb_api_http_req(api, FB_API_URL_AUTH, "authenticate", "auth.login",
                     prms, fb_api_cb_auth);
 }
