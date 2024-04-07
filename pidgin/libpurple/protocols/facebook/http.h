@@ -59,6 +59,7 @@ typedef GHashTable FbHttpParams;
 /**
  * FbHttpError:
  * @FB_HTTP_ERROR_SUCCESS: There is no error.
+ * @FB_HTTP_ERROR_INIT: The request failed to initialize.
  * @FB_HTTP_ERROR_NOMATCH: The name does not match anything.
  *
  * The error codes for the #FB_HTTP_ERROR domain.
@@ -66,6 +67,7 @@ typedef GHashTable FbHttpParams;
 typedef enum
 {
     FB_HTTP_ERROR_SUCCESS = 0,
+    FB_HTTP_ERROR_INIT,
     FB_HTTP_ERROR_NOMATCH
 } FbHttpError;
 

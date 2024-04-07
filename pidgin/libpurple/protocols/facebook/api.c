@@ -2423,6 +2423,90 @@ fb_api_cb_work_prelogin(PurpleHttpConnection *con, PurpleHttpResponse *res, gpoi
     json_node_free(root);
 }
 
+void
+fb_api_work_login(FbApi *api, gchar *user, gchar *pass)
+{
+    FbApiPrivate *priv = api->priv;
+    PurpleHttpConnection *con;
+    FbHttpParams *prms, *hdrs;
+    FbApiPreloginData *pata = g_new0(FbApiPreloginData, 1);
+
+    pata->api = api;
+    pata->user = user;
+    pata->pass = pass;
+
+    priv->is_work = TRUE;
+
+/* //THIS NEEDS REFACTOR
+    con = purple_http_request_new(FB_API_URL_WORK_PRELOGIN);
+    con = purple_http_request_new(priv->cons, FB_API_URL_WORK_PRELOGIN, TRUE, fb_api_cb_work_prelogin, pata);
+
+    hdrs = fb_http_request_get_headers(con);
+    fb_http_params_set_str(hdrs, "Authorization", "OAuth null");
+
+    prms = fb_http_request_get_params(req);
+    fb_http_params_set_str(prms, "email", user);
+    fb_http_params_set_str(prms, "access_token",
+        FB_WORK_API_KEY "|" FB_WORK_API_SECRET);
+
+    fb_http_request_send(req); //no equivalent for libpurple.
+*/
+}
+
+gchar *
+fb_api_work_gen_sso_url(FbApi *api, const gchar *user)
+{
+    FbApiPrivate *priv = api->priv;
+    gchar *challenge, *verifier, *req_id, *email;
+    gchar *ret;
+
+    fb_util_gen_sso_verifier(&challenge, &verifier, &req_id);
+
+    email = g_uri_escape_string(user, NULL, FALSE);
+
+    ret = g_strdup_printf(FB_API_SSO_URL, req_id, challenge, email);
+
+    g_free(req_id);
+    g_free(challenge);
+    g_free(email);
+
+    g_free(priv->sso_verifier);
+    priv->sso_verifier = verifier;
+
+    return ret;
+}
+
+void
+fb_api_work_got_nonce(FbApi *api, const gchar *url)
+{
+    gchar **split;
+    gchar *uid = NULL;
+    gchar *nonce = NULL;
+    int i;
+
+    if (!g_str_has_prefix(url, "fb-workchat-sso://sso/?")) {
+        return;
+    }
+
+    split = g_strsplit(strchr(url, '?'), "&", -1);
+
+    for (i = 0; split[i]; i++) {
+        gchar *eq = strchr(split[i], '=');
+
+        if (g_str_has_prefix(split[i], "uid=")) {
+            uid = g_strstrip(eq + 1);
+        } else if (g_str_has_prefix(split[i], "nonce=")) {
+            nonce = g_strstrip(eq + 1);
+        }
+    }
+
+    if (uid && nonce) {
+        fb_api_auth(api, uid, nonce, "work_sso_nonce");
+    }
+
+    g_strfreev(split);
+}
+
 static gchar *
 fb_api_user_icon_checksum(gchar *icon)
 {
@@ -3461,7 +3545,7 @@ fb_api_thread_topic(FbApi *api, FbId tid, const gchar *topic)
     fb_http_params_set_int(prms, "tid", tid);
     fb_api_http_req(api, FB_API_URL_TOPIC, "setThreadName",
                     "messaging.setthreadname", prms,
-            fb_api_cb_http_bool);
+                    fb_api_cb_http_bool);
 }
 
 static void
