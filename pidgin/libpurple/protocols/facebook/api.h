@@ -98,20 +98,43 @@
 #define FB_API_SECRET  "374e60f8b9bb6b8cbb30f78030438895"
 
 /**
+ * FB_WORK_API_KEY:
+ *
+ * The Facebook workchat app API key.
+ */
+#define FB_WORK_API_KEY  "312713275593566"
+
+/**
+ * FB_WORK_API_SECRET:
+ *
+ * The Facebook workchat app API secret.
+ */
+#define FB_WORK_API_SECRET  "d2901dc6cb685df3b074b30b56b78d28"
+
+/**
  * FB_ORCA_AGENT
  *
  * The part of the user agent that looks like the official client, since the
  * server started checking this.
+ *
+ * We announce ourselves as compatible with Orca-Android 38.0 since that's the
+ * closest version to the last major protocol update. Some parts use older
+ * features, some parts use newer ones.
+ *
+ * Fun fact: this version sends old-style MQIsdp CONNECT messages for the first
+ * connection, with JSON payloads instead of compressed thrift.
+ *
  */
 
-#define FB_ORCA_AGENT "[FBAN/Orca-Android;FBAV/537.0.0.31.101;FBPN/com.facebook.orca;FBLC/en_US;FBBV/52182662]"
+#define FB_ORCA_AGENT "[FBAN/Orca-Android;FBAV/537.0.0.31.101;FBBV/14477681]"
 
 /**
  * FB_API_AGENT:
  *
  * The HTTP User-Agent header.
  */
-#define FB_API_AGENT  "Facebook plugin / Purple / " PACKAGE_VERSION " " FB_ORCA_AGENT
+#define FB_API_AGENT_BASE "Facebook plugin / BitlBee / " PACKAGE_VERSION
+#define FB_API_AGENT FB_API_AGENT_BASE " " FB_ORCA_AGENT
 
 /**
  * FB_API_MQTT_AGENT
@@ -135,6 +158,15 @@
  * The URL for authentication requests.
  */
 #define FB_API_URL_AUTH  FB_API_BHOST "/method/auth.login"
+
+/**
+ * FB_API_URL_WORK_PRELOGIN
+ *
+ * The URL for workchat pre-login information, indicating what auth method
+ * should be used
+ */
+
+#define FB_API_URL_WORK_PRELOGIN  FB_API_GHOST "/at_work/pre_login_info"
 
 /**
  * FB_API_URL_GQL:
@@ -170,6 +202,14 @@
  * The URL for thread topic requests.
  */
 #define FB_API_URL_TOPIC  FB_API_AHOST "/method/messaging.setthreadname"
+
+/**
+ * FB_API_SSO_URL:
+ *
+ * Template for the URL shown to workchat users when trying to authenticate
+ * with SSO.
+ */
+#define FB_API_SSO_URL "https://m.facebook.com/work/sso/mobile?app_id=312713275593566&response_url=fb-workchat-sso%%3A%%2F%%2Fsso&request_id=%s&code_challenge=%s&email=%s"
 
 /**
  * FB_API_QUERY_CONTACT:
@@ -319,6 +359,16 @@
 #define FB_API_QUERY_XMA  10153919431161729
 
 /**
+ * FB_API_WORK_COMMUNITY_PEEK:
+ *
+ * The docid with information about the work community of the currently
+ * authenticated user.
+ *
+ * Used when prelogin returns can_login_via_linked_account
+ */
+#define FB_API_WORK_COMMUNITY_PEEK 1295334753880530
+
+/**
  * FB_API_CONTACTS_COUNT:
  *
  * The maximum amount of contacts to fetch in a single request. If this
@@ -341,15 +391,15 @@
  * pointer of a pointer to a #GError.
  */
 #define FB_API_TCHK(e) \
-	G_STMT_START { \
-		if (G_UNLIKELY(!(e))) { \
-			g_set_error(error, FB_API_ERROR, FB_API_ERROR_GENERAL, \
-						"Failed to read thrift: %s:%d " \
-						"%s: assertion '%s' failed", \
-						__FILE__, __LINE__, G_STRFUNC, #e); \
-			return; \
-		} \
-	} G_STMT_END
+    G_STMT_START { \
+        if (G_UNLIKELY(!(e))) { \
+            g_set_error(error, FB_API_ERROR, FB_API_ERROR_GENERAL, \
+                        "Failed to read thrift: %s:%d " \
+                        "%s: assertion '%s' failed", \
+                        __FILE__, __LINE__, G_STRFUNC, #e); \
+            return; \
+        } \
+    } G_STMT_END
 
 /**
  * FB_API_MSGID:
@@ -361,9 +411,9 @@
  * Returns: The message identifier.
  */
 #define FB_API_MSGID(m, i) ((guint64) ( \
-		(((guint32) i) & 0x3FFFFF) | \
-		(((guint64) m) << 22) \
-	))
+        (((guint32) i) & 0x3FFFFF) | \
+        (((guint64) m) << 22) \
+    ))
 
 /**
  * FB_API_ERROR_EMIT:
@@ -374,12 +424,12 @@
  * Emits a #GError on behalf of the #FbApi.
  */
 #define FB_API_ERROR_EMIT(a, e, c) \
-	G_STMT_START { \
-		if (G_UNLIKELY((e) != NULL)) { \
-			fb_api_error_emit(a, e); \
-			{c;} \
-		} \
-	} G_STMT_END
+    G_STMT_START { \
+        if (G_UNLIKELY((e) != NULL)) { \
+            fb_api_error_emit(a, e); \
+            {c;} \
+        } \
+    } G_STMT_END
 
 /**
  * FB_API_ERROR:
@@ -409,10 +459,10 @@ typedef struct _FbApiUser FbApiUser;
  */
 typedef enum
 {
-	FB_API_ERROR_GENERAL,
-	FB_API_ERROR_AUTH,
-	FB_API_ERROR_QUEUE,
-	FB_API_ERROR_NONFATAL
+    FB_API_ERROR_GENERAL,
+    FB_API_ERROR_AUTH,
+    FB_API_ERROR_QUEUE,
+    FB_API_ERROR_NONFATAL
 } FbApiError;
 
 /**
@@ -425,9 +475,9 @@ typedef enum
  */
 typedef enum
 {
-	FB_API_EVENT_TYPE_THREAD_TOPIC,
-	FB_API_EVENT_TYPE_THREAD_USER_ADDED,
-	FB_API_EVENT_TYPE_THREAD_USER_REMOVED
+    FB_API_EVENT_TYPE_THREAD_TOPIC,
+    FB_API_EVENT_TYPE_THREAD_USER_ADDED,
+    FB_API_EVENT_TYPE_THREAD_USER_REMOVED
 } FbApiEventType;
 
 /**
@@ -440,10 +490,43 @@ typedef enum
  */
 typedef enum
 {
-	FB_API_MESSAGE_FLAG_DONE = 1 << 0,
-	FB_API_MESSAGE_FLAG_IMAGE = 1 << 1,
-	FB_API_MESSAGE_FLAG_SELF = 1 << 2
+    FB_API_MESSAGE_FLAG_DONE = 1 << 0,
+    FB_API_MESSAGE_FLAG_IMAGE = 1 << 1,
+    FB_API_MESSAGE_FLAG_SELF = 1 << 2
 } FbApiMessageFlags;
+
+/**
+* FbApiClientCapabilities:
+* @FB_CP_ACKNOWLEDGED_DELIVERY:
+* @FB_CP_PROCESSING_LASTACTIVE_PRESENCEINFO:
+* @FB_CP_EXACT_KEEPALIVE:
+* @FB_CP_REQUIRES_JSON_UNICODE_ESCAPES:
+* @FB_CP_DELTA_SENT_MESSAGE_ENABLED:
+* @FB_CP_USE_ENUM_TOPIC: All topics are numeric.
+* @FB_CP_SUPPRESS_GETDIFF_IN_CONNECT:
+* @FB_CP_USE_THRIFT_FOR_INBOX:
+* @FB_CP_USE_SEND_PINGRESP:
+* @FB_CP_REQUIRE_REPLAY_PROTECTION:
+* @FB_CP_DATA_SAVING_MODE:
+* @FB_CP_TYPING_OFF_WHEN_SENDING_MESSAGE:
+*
+* The client capabilities.
+*/
+typedef enum
+{
+    FB_CP_ACKNOWLEDGED_DELIVERY = 1 << 0,
+    FB_CP_PROCESSING_LASTACTIVE_PRESENCEINFO = 1 << 1,
+    FB_CP_EXACT_KEEPALIVE = 1 << 2,
+    FB_CP_REQUIRES_JSON_UNICODE_ESCAPES = 1 << 3,
+    FB_CP_DELTA_SENT_MESSAGE_ENABLED = 1 << 4,
+    FB_CP_USE_ENUM_TOPIC = 1 << 5,
+    FB_CP_SUPPRESS_GETDIFF_IN_CONNECT = 1 << 6,
+    FB_CP_USE_THRIFT_FOR_INBOX = 1 << 7,
+    FB_CP_USE_SEND_PINGRESP = 1 << 8,
+    FB_CP_REQUIRE_REPLAY_PROTECTION = 1 << 9,
+    FB_CP_DATA_SAVING_MODE = 1 << 10,
+    FB_CP_TYPING_OFF_WHEN_SENDING_MESSAGE = 1 << 11
+} FbApiClientCapabilities;
 
 /**
  * FbApi:
@@ -452,9 +535,9 @@ typedef enum
  */
 struct _FbApi
 {
-	/*< private >*/
-	GObject parent;
-	FbApiPrivate *priv;
+    /*< private >*/
+    GObject parent;
+    FbApiPrivate *priv;
 };
 
 /**
@@ -464,8 +547,8 @@ struct _FbApi
  */
 struct _FbApiClass
 {
-	/*< private >*/
-	GObjectClass parent_class;
+    /*< private >*/
+    GObjectClass parent_class;
 };
 
 /**
@@ -479,10 +562,10 @@ struct _FbApiClass
  */
 struct _FbApiEvent
 {
-	FbApiEventType type;
-	FbId uid;
-	FbId tid;
-	gchar *text;
+    FbApiEventType type;
+    FbId uid;
+    FbId tid;
+    gchar *text;
 };
 
 /**
@@ -497,11 +580,11 @@ struct _FbApiEvent
  */
 struct _FbApiMessage
 {
-	FbApiMessageFlags flags;
-	FbId uid;
-	FbId tid;
-	gint64 tstamp;
-	gchar *text;
+    FbApiMessageFlags flags;
+    FbId uid;
+    FbId tid;
+    gint64 tstamp;
+    gchar *text;
 };
 
 /**
@@ -513,8 +596,8 @@ struct _FbApiMessage
  */
 struct _FbApiPresence
 {
-	FbId uid;
-	gboolean active;
+    FbId uid;
+    gboolean active;
 };
 
 /**
@@ -527,9 +610,9 @@ struct _FbApiPresence
  */
 struct _FbApiThread
 {
-	FbId tid;
-	gchar *topic;
-	GSList *users;
+    FbId tid;
+    gchar *topic;
+    GSList *users;
 };
 
 /**
@@ -541,8 +624,8 @@ struct _FbApiThread
  */
 struct _FbApiTyping
 {
-	FbId uid;
-	gboolean state;
+    FbId uid;
+    gboolean state;
 };
 
 /**
@@ -556,10 +639,10 @@ struct _FbApiTyping
  */
 struct _FbApiUser
 {
-	FbId uid;
-	gchar *name;
-	gchar *icon;
-	gchar *csum;
+    FbId uid;
+    gchar *name;
+    gchar *icon;
+    gchar *csum;
 };
 
 /**
@@ -641,12 +724,49 @@ fb_api_error_emit(FbApi *api, GError *error);
  * @api: The #FbApi.
  * @user: The Facebook user name, email, or phone number.
  * @pass: The Facebook password.
+ * @credentials_type: Type of work account credentials, or NULL
  *
  * Sends an authentication request to Facebook. This will obtain
  * session information, which is required for all other requests.
  */
 void
-fb_api_auth(FbApi *api, const gchar *user, const gchar *pass);
+fb_api_auth(FbApi *api, const gchar *user, const gchar *pass, const gchar *credentials_type);
+
+/**
+ * fb_api_work_login:
+ * @api: The #FbApi.
+ * @user: The Facebook user name, email, or phone number.
+ * @pass: The Facebook password.
+ *
+ * Starts the workchat login sequence.
+ */
+void
+fb_api_work_login(FbApi *api, gchar *user, gchar *pass);
+
+/**
+ * fb_api_work_gen_sso_url:
+ * @api: The #FbApi.
+ * @user: The Facebook user email.
+ *
+ * Generates the URL to be shown to the user to get the SSO auth token. This
+ * url contains a challenge and the corresponding verifier is saved in the
+ * FbApi instance to be used later.
+ *
+ * Returns: a newly allocated string.
+ */
+gchar *
+fb_api_work_gen_sso_url(FbApi *api, const gchar *user);
+
+/**
+ * fb_api_work_got_nonce:
+ * @api: The #FbApi.
+ * @url: The fb-workchat-sso:// URL as entered by the user
+ *
+ * Parses the fb-workchat-sso:// URL that the user got redirected to and
+ * continues with work_sso_nonce auth
+ */
+void
+fb_api_work_got_nonce(FbApi *api, const gchar *url);
 
 /**
  * fb_api_contact:
