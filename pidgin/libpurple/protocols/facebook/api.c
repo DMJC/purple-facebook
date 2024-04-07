@@ -943,7 +943,6 @@ fb_api_http_query(FbApi *api, gint64 query, JsonBuilder *builder,
 
     prms = fb_http_params_new();
     json = fb_json_bldr_close(builder, JSON_NODE_OBJECT, NULL);
-
     fb_http_params_set_strf(prms, "query_id", "%" G_GINT64_FORMAT, query);
     fb_http_params_set_str(prms, "query_params", json);
     g_free(json);
@@ -952,8 +951,7 @@ fb_api_http_query(FbApi *api, gint64 query, JsonBuilder *builder,
 }
 
 static void
-fb_api_cb_http_bool(PurpleHttpConnection *con, PurpleHttpResponse *res,
-                    gpointer data)
+fb_api_cb_http_bool(PurpleHttpConnection *con, PurpleHttpResponse *res, gpointer data)
 {
     const gchar *hata;
     FbApi *api = data;
@@ -965,8 +963,7 @@ fb_api_cb_http_bool(PurpleHttpConnection *con, PurpleHttpResponse *res,
     hata = purple_http_response_get_data(res, NULL);
 
     if (!purple_strequal(hata, "true")) {
-        fb_api_error(api, FB_API_ERROR,
-                     _("Failed generic API operation"));
+        fb_api_error(api, FB_API_ERROR, _("Failed generic API operation"));
     }
 }
 
@@ -1274,7 +1271,7 @@ fb_api_event_parse(FbApi *api, FbApiEvent *event, GSList *events,
     } evtypes[] = {
         {
             FB_API_EVENT_TYPE_THREAD_USER_ADDED,
-            "$.log_message_data.added_participants"
+             "$.log_message_data.added_participants"
         }, {
             FB_API_EVENT_TYPE_THREAD_USER_REMOVED,
             "$.log_message_data.removed_participants"
@@ -2225,9 +2222,56 @@ fb_api_attach(FbApi *api, FbId aid, const gchar *msgid, FbApiMessage *msg)
     fb_http_params_set_strf(prms, "aid", "%" FB_ID_FORMAT, aid);
 
     http = fb_api_http_req(api, FB_API_URL_ATTACH, "getAttachment",
-                           "messaging.getAttachment", prms,
-                   fb_api_cb_attach);
+                          "messaging.getAttachment", prms,
+                          fb_api_cb_attach);
     fb_api_data_set(api, http, msg, (GDestroyNotify) fb_api_message_free);
+}
+
+static void
+fb_api_cb_work_peek(PurpleHttpConnection *con, PurpleHttpResponse *res, gpointer data)
+{
+    FbApi *api = data;
+    FbApiPrivate *priv = api->priv;
+    GError *err = NULL;
+    JsonNode *root;
+    gchar *community = NULL;
+
+    if (!fb_api_http_chk(api, con, res, &root)) {
+        return;
+    }
+
+    /* The work_users[0] explicitly only handles the first user.
+     * If more than one user is ever needed, this is what you want to change,
+     * but as far as I know this feature (linked work accounts) is deprecated
+     * and most users can detach their work accounts from their personal
+     * accounts by assigning a password to the work account. */
+    community = fb_json_node_get_str(root,
+        "$.data.viewer.work_users[0].community.login_identifier", &err);
+
+    FB_API_ERROR_EMIT(api, err,
+        g_free(community);
+        json_node_free(root);
+        return;
+    );
+
+    priv->work_community_id = FB_ID_FROM_STR(community);
+
+    fb_api_auth(api, "X", "X", "personal_to_work_switch");
+
+    g_free(community);
+    json_node_free(root);
+}
+
+static PurpleHttpConnection *
+fb_api_work_peek(FbApi *api)
+{
+    FbHttpParams *prms;
+
+    prms = fb_http_params_new();
+    fb_http_params_set_int(prms, "doc_id", FB_API_WORK_COMMUNITY_PEEK);
+
+    return fb_api_http_req(api, FB_API_URL_GQL, "WorkCommunityPeekQuery",
+        "post", prms, fb_api_cb_work_peek);
 }
 
 static void
@@ -2264,9 +2308,21 @@ fb_api_cb_auth(PurpleHttpConnection *con, PurpleHttpResponse *res,
 
     g_free(priv->token);
     priv->token = fb_json_values_next_str_dup(values, NULL);
-    priv->uid = fb_json_values_next_int(values, 0);
+//    priv->uid = fb_json_values_next_int(values, 0);
 
-    g_signal_emit_by_name(api, "auth");
+    if (priv->is_work) {
+        priv->uid = FB_ID_FROM_STR(fb_json_values_next_str(values, "0"));
+    } else {
+        priv->uid = fb_json_values_next_int(values, 0);
+    }
+
+    if (priv->need_work_switch) {
+        fb_api_work_peek(api);
+        priv->need_work_switch = FALSE;
+    } else {
+        g_signal_emit_by_name(api, "auth");
+    }
+
     g_object_unref(values);
     json_node_free(root);
 }

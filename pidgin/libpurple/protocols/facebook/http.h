@@ -65,8 +65,8 @@ typedef GHashTable FbHttpParams;
  */
 typedef enum
 {
-	FB_HTTP_ERROR_SUCCESS = 0,
-	FB_HTTP_ERROR_NOMATCH
+    FB_HTTP_ERROR_SUCCESS = 0,
+    FB_HTTP_ERROR_NOMATCH
 } FbHttpError;
 
 /**
@@ -303,7 +303,7 @@ fb_http_params_dup_str(FbHttpParams *params, const gchar *name,
  */
 void
 fb_http_params_set_bool(FbHttpParams *params, const gchar *name,
-		        gboolean value);
+                gboolean value);
 
 /**
  * fb_http_params_set_dbl:
