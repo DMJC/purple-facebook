@@ -117,9 +117,17 @@ static void
 fb_cb_api_auth(FbApi *api, gpointer data)
 {
     FbData *fata = data;
+    PurpleBuddy *buddy;
+    PurpleAccount *acct;
     PurpleConnection *gc;
 
     gc = fb_data_get_connection(fata);
+    acct = purple_connection_get_account(gc);
+    buddy = purple_find_buddy(acct, FB_SSO_HANDLE);
+
+    if (buddy) {
+        purple_blist_remove_buddy(buddy);
+    }
 
     purple_connection_update_progress(gc, _("Fetching contacts"), 2, 4);
     fb_data_save(fata);
@@ -167,6 +175,17 @@ fb_cb_api_contact(FbApi *api, FbApiUser *user, gpointer data)
         fb_cb_api_messages(api, msgs, fata);
         g_slist_free_full(msgs, (GDestroyNotify) fb_api_message_free);
     }
+}
+
+static void
+fb_cb_api_twofactor_code_prompt(FbApi *api, gpointer data)
+{
+    FbData *fata = data;
+//rewrite for Purple
+/*    struct im_connection *ic;
+
+    ic = fb_data_get_connection(fata);
+    imcb_log(ic, "If you receive new 2FA code, do like this: acc facebook set twofactor_code <your code>");*/
 }
 
 static gboolean
@@ -828,6 +847,40 @@ fb_cb_api_typing(FbApi *api, FbApiTyping *typg, gpointer data)
 }
 
 static void
+fb_cb_api_work_sso_login(FbApi *api, gpointer data)
+{
+    PurpleConnection *gc;
+    PurpleAccount *acct;
+    gchar *url;
+
+    // Get the PurpleConnection from the FbData structure
+    gc = purple_account_get_connection(acct);
+
+    // Get the PurpleAccount associated with the connection
+    acct = purple_connection_get_account(gc);
+
+    // Generate the SSO URL using the user's account info
+    url = fb_api_work_gen_sso_url(api, purple_account_get_username(acct));
+
+    // Add a "buddy" (handle) for interaction (this might be optional)
+    purple_blist_add_buddy(purple_buddy_new(acct, FB_SSO_HANDLE, NULL), NULL, NULL, NULL);
+
+    // Send the first message to the buddy with authentication instructions
+    serv_got_im(gc, FB_SSO_HANDLE, "Open this URL in your browser to authenticate:", PURPLE_MESSAGE_SYSTEM, time(NULL));
+    serv_got_im(gc, FB_SSO_HANDLE, url, PURPLE_MESSAGE_SYSTEM, time(NULL));
+    serv_got_im(gc, FB_SSO_HANDLE,
+        "Respond to this message with the URL starting with 'fb-workchat-sso://' that it attempts to redirect to.",
+        PURPLE_MESSAGE_SYSTEM, time(NULL));
+    serv_got_im(gc, FB_SSO_HANDLE,
+        "If your browser says 'Address not understood' (like firefox), copy it from the address bar. "
+        "Otherwise you might have to right-click -> view source in the last page and find it there. Good luck!",
+        PURPLE_MESSAGE_SYSTEM, time(NULL));
+
+    // Free the generated URL after use
+    g_free(url);
+}
+
+static void
 fb_mark_read(FbData *fata, FbId id, gboolean thread)
 {
     FbApi *api;
@@ -1000,6 +1053,14 @@ fb_login(PurpleAccount *acct)
     convh = purple_conversations_get_handle();
     purple_connection_set_protocol_data(gc, fata);
 
+    g_signal_connect(api,
+                     "work-sso-login",
+                     G_CALLBACK(fb_cb_api_work_sso_login),
+                     fata);
+    g_signal_connect(api,
+                     "twofactor-code-prompt",
+                     G_CALLBACK(fb_cb_api_twofactor_code_prompt),
+                     fata);
     g_signal_connect(api,
                      "auth",
                      G_CALLBACK(fb_cb_api_auth),

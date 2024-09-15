@@ -56,7 +56,10 @@ static const gchar *fb_props_strs[] = {
 	"cid",
 	"did",
 	"stoken",
-	"token"
+	"token",
+	"machine_id",
+	"login_first_factor",
+	"twofactor_code"
 };
 
 G_DEFINE_TYPE_WITH_CODE(FbData, fb_data, G_TYPE_OBJECT, G_ADD_PRIVATE(FbData));

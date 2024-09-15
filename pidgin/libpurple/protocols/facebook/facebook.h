@@ -30,5 +30,6 @@
  * The Facebook protocol identifier.
  */
 #define FB_PROTOCOL_ID  "prpl-facebook"
+#define FB_SSO_HANDLE "facebook_sso_auth"
 
 #endif /* _FACEBOOK_H_ */
