@@ -9,3 +9,11 @@ This has been forked from https://github.com/dequis/purple-facebook/ - Thanks De
 Build Instructions: git clone the repository, run meson setup build, cd into build directory and type ninja; ninja install to install to plugins folder.
 
 More information: https://github.com/dequis/purple-facebook/wiki
+
+Features:
+- Chat is implemented
+- Group Chat Works
+- MFA/2FA Works
+
+TODO:
+- Implement End to End encryption. I would like some assistance with this, code/information contributions are welcome.
