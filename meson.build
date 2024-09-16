@@ -1,24 +1,8 @@
 project('purple-facebook', 'c')
 
-# Define package version
-#PACKAGE_VERSION = '0.9.61'  # Adjust the version number as needed
-#PACKAGE_URL = 'https://github.com/DMJC/purple-facebook'
-
-# Configure the package
-#pkgconf = configuration_data()
-#pkgconf.set('PACKAGE_VERSION', PACKAGE_VERSION)
-#pkgconf.set('PACKAGE_URL', PACKAGE_URL)
-
 compiler_options = []
-compiler_options += ['-DPACKAGE_VERSION="0.9.7"']
+compiler_options += ['-DPACKAGE_VERSION="0.9.8"']
 compiler_options += ['-DPACKAGE_URL="https://github.com/dequis/purple-facebook/"']
-
-#define('PACKAGE_VERSION', '"0.9.61"')
-#define('PACKAGE_URL', '"https://github.com/DMJC/purple-facebook"')
-
-# Write the configuration to a file
-#configure_file(output : 'config.h',
-#               configuration : pkgconf)
 
 # Add compiler flags if warnings are enabled
 if get_option('warnings')
@@ -85,6 +69,4 @@ else
 endif
 
 # Define library
-#plugin_library = shared_library('purple-facebook-plugin', source_files, dependencies : [glib_dep, json_dep, purple_dep, zlib_dep], c_args: compiler_options)
-
 plugin_library = shared_library('facebook', source_files, dependencies : [glib_dep, json_dep, purple_dep, zlib_dep], c_args: compiler_options, install: true, install_dir: purple_plugindir)
