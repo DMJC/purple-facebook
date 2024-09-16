@@ -1,5 +1,6 @@
-libpurple-facebook (0.9.7) UNRELEASED; urgency=medium
+libpurple-facebook (0.9.8) UNRELEASED; urgency=medium
 
+  * MFA/2FA support added.
   * Initial debian support.
 
- -- jgeboski <jgeboski@gmail.com>  Thu, 01 Jan 1970 00:00:00 +0000
+ -- jcarthew <jcarthew@gmail.com>  Mon, 16 Sep 2024 23:05:00 +0000
