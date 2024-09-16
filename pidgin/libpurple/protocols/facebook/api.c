@@ -3862,7 +3862,7 @@ fb_api_event_dup(const FbApiEvent *event, gboolean deep)
         return g_new0(FbApiEvent, 1);
     }
 
-    ret = g_memdup2(event, sizeof *event);
+    ret = g_memdup(event, sizeof *event);
 
     if (deep) {
         ret->text = g_strdup(event->text);
