@@ -2665,9 +2665,9 @@ void purple_http_request_set_contents(PurpleHttpRequest *request,
 	if (length == -1)
 		length = strlen(contents);
 #if GLIB_CHECK_VERSION(2, 68, 0)
-	request->contents = g_memdup(contents, length);
-#else
 	request->contents = g_memdup2(contents, length);
+#else
+	request->contents = g_memdup(contents, length);
 #endif
 	request->contents_length = length;
 }
