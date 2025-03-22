@@ -384,7 +384,11 @@ fb_data_set_unread(FbData *fata, FbId id, gboolean unread)
 		return;
 	}
 
+#if GLIB_CHECK_VERSION(2, 68, 0)
 	key = g_memdup2(&id, sizeof id);
+#else
+	key = g_memdup(&id, sizeof id);
+#endif
 	g_hash_table_replace(priv->unread, key, GINT_TO_POINTER(unread));
 }
 
@@ -526,7 +530,11 @@ fb_data_image_dup_image(FbDataImage *img, gsize *size)
 		return NULL;
 	}
 
+#if GLIB_CHECK_VERSION(2, 68, 0)
 	return g_memdup2(priv->image, priv->size);
+#else
+	return g_memdup(priv->image, priv->size);
+#endif
 }
 
 const gchar *
